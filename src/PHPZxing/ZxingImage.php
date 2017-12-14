@@ -36,7 +36,11 @@ namespace PHPZxing;
 
 class ZxingImage  {
     // Decoded Value from source
-    private $imageValue     = null;
+    private $imageValueLines = array();
+
+    // Points of Barcode XY
+
+    private $points =array();
 
     // Format of decoded data - CODE_39 etc..
     private $format         = null;
@@ -47,17 +51,21 @@ class ZxingImage  {
     // Path of the image decoded
     private $imagePath      = null;
 
-    public function __construct($imagePath, $imageValue , $format, $type) {
-        $this->imageValue   = $imageValue;
+    public function __construct($imagePath, $format, $type) {
+       // $this->imageValue   = $imageValue;
         $this->format       = $format;
         $this->type         = $type;
         $this->imagePath    = $imagePath;
     }
 
-    public function getImageValue() {
-        return $this->imageValue;
+    public function getImageValueLines() {
+        return $this->imageValueLines;
     }
 
+    public function getPoints() {
+        return $this->points;
+    }
+    
     public function getFormat() {
         return $this->format;
     }
@@ -68,5 +76,21 @@ class ZxingImage  {
 
     public function getImagePath() {
         return $this->imagePath;
+    }
+    
+     public function setImageValueLines($imageValueLines) {
+        $this->imageValueLines  =   $imageValueLines;
+    }
+    
+    public function setPoints($pionts) {
+        $this->points   =   $pionts;
+    }
+
+    public function addImageValueLine($line){
+        $this->imageValueLines[] = $line;
+    }
+
+    public function addPoint($x,$y){
+        $this->points[] = array('x' =>$x , 'y'=>$y);
     }
 }

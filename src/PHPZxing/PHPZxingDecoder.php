@@ -148,34 +148,63 @@ class PHPZxingDecoder extends PHPZxingBase  {
      */
     private function createImages($output) {
         $image = array();
-        
         foreach ($output as $key => $singleLine) {
+
             if (preg_match('/\(format/', $singleLine)) {
                 $imageInfo  = $singleLine;
                 $startPos   = strpos($imageInfo, "(") + 1;
                 $endPos     = strpos($imageInfo, ")");
                 $dataStr   = substr($imageInfo, $startPos, $endPos - $startPos);
-
                 $dataExplode    = explode(",", $dataStr);
                 $contentFormat  = explode(":", $dataExplode[0]);
                 $format         = $contentFormat[1];
                 $contentFormat  = explode(":", $dataExplode[1]);
                 $type         = $contentFormat[1];
-
-                $imageValue = $output[$key + 2];
-
                 $exploded = explode(" ", $singleLine);
                 $imagePath = array_shift($exploded);
-
-                $image[] = new ZxingImage($imagePath, $imageValue, $format, $type);
+                $imageData = new ZxingImage($imagePath, $format, $type);
+                
 
             } else if(preg_match('/No barcode found/', $singleLine)) {
                 $exploded = explode(" ", $singleLine);
                 $imagePath = array_shift($exploded);
-                $image[] = new ZxingBarNotFound($imagePath, 101, "No barcode found");
+                $imageData = new ZxingBarNotFound($imagePath, 101, "No barcode found");
+                $image[] = $imageData; //saves Data to image array
+                unset ($imageData);
             }
-        }
 
+            if (preg_match('/Raw result:/', $singleLine)){
+                $startPosTextValue = $key+1;
+            }
+
+            if (preg_match('/Parsed result:/',$singleLine)){
+                $endPosTextValue = $key;
+                $laenge= $endPosTextValue-$startPosTextValue;
+                if(isset($imageData)){
+                    $imageData->setImageValueLines(array_slice($output, $startPosTextValue,$laenge));
+                }
+            }
+
+            if(preg_match('/Found ([0-9]+) result points/', $singleLine,$result)){
+                 $points = array();
+                 foreach (array_slice($output, $key+1, intval($result[1])) as $pointindex=>$xypos){
+                     //extract points from String 'Point 0: (34.0,317.0)' to '34.0,317.0'
+                     preg_match('/\((.+)\)/', $xypos,$xypos);
+                     //xypoints from String '34.0,317.0' to array(0 => '34.0', 1 => '317.0')
+                     $xypos = explode( ',',$xypos[1]); 
+                      //convert String to float value
+                     $points[$pointindex]=array(
+                         'x'=>floatval($xypos[0]),
+                         'y'=>floatval($xypos[1])
+                         );
+                 }
+                 if(isset($imageData)){
+                     $imageData->setPoints($points);
+                     $image[] = $imageData; //saves Data to image array
+                 }
+                 unset ($imageData);
+            };
+        }
         return $image;
     }
 
