@@ -53,8 +53,8 @@ class ZxingImage  {
 
     public function __construct($imagePath, $format, $type) {
        // $this->imageValue   = $imageValue;
-        $this->format       = $format;
-        $this->type         = $type;
+        $this->format       = trim($format);
+        $this->type         = trim($type);
         $this->imagePath    = $imagePath;
     }
 
